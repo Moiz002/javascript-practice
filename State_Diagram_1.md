@@ -15,46 +15,49 @@ stateDiagram-v2
     state "DEACTIVATED" as S6
 
     %% --- Main Flow ---
-    [*] --> S1 : onSignUpSubmit
+    [*] --> S1 : "onSignUpSubmit"
     
-    S1 --> S2 : createAccountRecord
-    note right of S1: Initial DB entry created\nRole assigned (Worker/Customer)
+    S1 --> S2 : "createAccountRecord"
+    note right of S1
+        Initial DB entry created
+        Role assigned (Worker/Customer)
+    end note
 
     state S2 {
         direction LR
         [*] --> Awaiting_OTP
-        Awaiting_OTP --> Awaiting_OTP : resendOTP [attempts < 3]
+        Awaiting_OTP --> Awaiting_OTP : "resendOTP [attempts < 3]"
     }
     
-    S2 --> S3 : onOTPValidation [OTP_Valid]
+    S2 --> S3 : "onOTPValidation [OTP_Valid]"
     
     state S3 {
         direction TB
         state "DATA_COLLECTION" as DC
         state "PENDING_VERIFICATION" as PV
         
-        [*] --> DC : entry / initializeOnboarding
-        DC --> PV : submitWorkerKYC [Role == 'worker']
-        PV --> DC : onAdminRejection [reasonProvided]
-        PV --> Onboarded : onAdminApproval
-        DC --> Onboarded : submitCustomerProfile [Role == 'customer']
+        [*] --> DC : "entry / initializeOnboarding"
+        DC --> PV : "submitWorkerKYC [Role == 'worker']"
+        PV --> DC : "onAdminRejection [reasonProvided]"
+        PV --> Onboarded : "onAdminApproval"
+        DC --> Onboarded : "submitCustomerProfile [Role == 'customer']"
     }
 
-    S3 --> S4 : onOnboardingCompletion
+    S3 --> S4 : "onOnboardingCompletion"
     
     state S4 {
         [*] --> Normal_Usage
-        Normal_Usage --> Normal_Usage : updateProfileDetails
+        Normal_Usage --> Normal_Usage : "updateProfileDetails"
     }
 
     %% --- Exceptional & Termination Flows ---
-    S4 --> S5 : onSecurityViolation [GuardianAI / Admin]
-    S5 --> S4 : onComplianceResolution
+    S4 --> S5 : "onSecurityViolation [Admin]"
+    S5 --> S4 : "onComplianceResolution"
     
-    S4 --> S6 : onUserDeletionRequest
-    S5 --> S6 : onPermanentBan [Admin]
+    S4 --> S6 : "onUserDeletionRequest"
+    S5 --> S6 : "onPermanentBan [Admin]"
     
-    S6 --> [*] : purgeRecord / archiveData
+    S6 --> [*] : "purgeRecord / archiveData"
 
     %% --- Documentation Notes ---
     note left of S4
@@ -70,5 +73,5 @@ stateDiagram-v2
 *   **CREDENTIAL_VERIFICATION:** A security phase where the user must prove ownership of their phone/email via OTP.
 *   **IDENTITY_ONBOARDING:** A composite state where workers complete a 5-step setup (Portfolio, CNIC) and customers provide basic details. Workers remain in `PENDING_VERIFICATION` until manual admin approval.
 *   **ACTIVE_OPERATIONAL:** The standard state for verified users with full platform features.
-*   **ADMINISTRATIVE_HOLD:** A restricted state triggered by the Guardian AI or an Admin for suspicious activity.
+*   **ADMINISTRATIVE_HOLD:** A restricted state triggered by an Admin for suspicious activity.
 *   **DEACTIVATED:** The final state before data archival or deletion.
