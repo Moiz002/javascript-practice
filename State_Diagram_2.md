@@ -16,38 +16,44 @@ stateDiagram-v2
     state "DISPUTE_RESOLUTION" as S7
 
     %% --- Main Success Path ---
-    [*] --> S1 : onJobSubmission
-    note right of S1: Job is visible in worker feed\nAccepting bids
+    [*] --> S1 : "onJobSubmission"
+    note right of S1
+        Job is visible in worker feed
+        Accepting bids
+    end note
 
-    S1 --> S2 : onBidAcceptance [Customer selects Worker]
+    S1 --> S2 : "onBidAcceptance [Customer selects Worker]"
     
-    S2 --> S3 : onJobStart [Worker arrival/commence]
+    S2 --> S3 : "onJobStart [Worker arrival/commence]"
     
-    S3 --> S4 : onWorkSubmission [Worker marks as 'Done']
-    note left of S4: Customer reviews quality\nVerifies completion
+    S3 --> S4 : "onWorkSubmission [Worker marks as 'Done']"
+    note left of S4
+        Customer reviews quality
+        Verifies completion
+    end note
 
-    S4 --> S5 : onCustomerApproval [Finalizing payment]
+    S4 --> S5 : "onCustomerApproval [Finalizing payment]"
     
-    S5 --> [*] : archiveRecord
+    S5 --> [*] : "archiveRecord"
 
     %% --- Branching & Exceptional Paths ---
-    S1 --> S6 : onUserCancellation [No bids accepted]
-    S2 --> S6 : onJobAbandonment [Worker/Customer withdrawal]
+    S1 --> S6 : "onUserCancellation [No bids accepted]"
+    S2 --> S6 : "onJobAbandonment [Worker/Customer withdrawal]"
     
-    S3 --> S7 : onConflictDetection [Dispute raised]
-    S4 --> S7 : onQualityObjection [Customer rejects work]
+    S3 --> S7 : "onConflictDetection [Dispute raised]"
+    S4 --> S7 : "onQualityObjection [Customer rejects work]"
     
     state S7 {
         direction LR
         [*] --> Under_Investigation
-        Under_Investigation --> Resolution_Proposed : onAdminIntervention
-        Resolution_Proposed --> [*] : onAgreement
+        Under_Investigation --> Resolution_Proposed : "onAdminIntervention"
+        Resolution_Proposed --> [*] : "onAgreement"
     }
 
-    S7 --> S5 : onResolved_Success
-    S7 --> S6 : onResolved_Failure [Refund triggered]
+    S7 --> S5 : "onResolved_Success"
+    S7 --> S6 : "onResolved_Failure [Refund triggered]"
 
-    S6 --> [*] : logCancellationReason
+    S6 --> [*] : "logCancellationReason"
 
     %% --- Documentation Notes ---
     note left of S3
@@ -57,7 +63,7 @@ stateDiagram-v2
     end note
 
     note right of S7
-        Guardian AI monitors 
+        Monitored via Admin Dashboard
         for suspicious activity
         during this phase.
     end note
